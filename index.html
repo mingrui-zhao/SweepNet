@@ -1,0 +1,204 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SweepNet: Unsupervised Learning Shape Abstraction via Neural Sweepers</title>
+    <!-- Bootstrap -->
+    <link href="css/bootstrap-4.4.1.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- <link href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,800italic,400,700,800' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="css/project.css" media="screen" />
+    <link rel="stylesheet" type="text/css" media="screen" href="css/iconize.css" />
+    <script src="js/google-code-prettify/prettify.js"></script> -->
+  </head>
+
+  <!-- cover -->
+  <section>
+    <div class="jumbotron text-center mt-0">
+      <div class="container">
+        <div class="row">
+          <div class="col-12">
+            <h2>SweepNet: Unsupervised Learning Shape Abstraction via Neural Sweepers
+            </h2>
+            <h4 style="color:#5a6268;">ECCV 2024</h4>
+            <hr>
+            <h6>
+                <a href="https://mingrui-zhao.github.io/" target="_blank">Mingrui Zhao</a><sup>1</sup>,
+                <a href="https://yizhiwang96.github.io/" target="_blank">Yizhi Wang</a><sup>1</sup>,
+                <a href="https://fenggenyu.github.io/" target="_blank">Fenggen Yu</a><sup>1</sup>,
+                <a href="https://changqingzou.weebly.com/" target="_blank">Changqing Zou</a><sup>2</sup>,
+                <a href="https://arash-mham.github.io/" target="_blank">Ali Mahdavi-Amiri</a><sup>1</sup>,
+            <p>
+                <sup>1</sup>Simon Fraser University &nbsp;&nbsp;
+                <sup>2</sup>Zhejiang University&nbsp;&nbsp;&nbsp;&nbsp;
+            </p>
+
+            <div class="row justify-content-center">
+              <div class="column">
+                  <p class="mb-5"><a class="btn btn-large btn-light" href="" role="button"  target="_blank">
+                    <i class="fa fa-file"></i> Paper </a> </p>
+              </div>
+              <div class="column">
+                  <p class="mb-5"><a class="btn btn-large btn-light" href="" role="button"  target="_blank">
+                    <i class="fa fa-github-alt"></i> Code (To be released) </a> </p>
+              </div>
+              <div class="column">
+                  <p class="mb-5"><a class="btn btn-large btn-light" href="" role="button"  target="_blank">
+                    <i class="fa fa-database"></i> Dataset </a> </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- abstract -->
+  <section>
+    <div class="container">
+      <div class="row">
+        <div class="col-12 text-center">
+          <h3>Abstract</h3>
+            <hr style="margin-top:0px">
+            <h6 style="color:#8899a5"> Hello! This is SweepNet. Each letter is represented with parametrisable sweep surfaces. </h6>
+
+              <video width="80%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                  <source src="video/SweepNet_greeting_1080.mp4" type="video/mp4">
+              </video>
+
+			        <br>
+
+          <p class="text-left">
+            Shape abstraction is an important task for simplifying complex geometric structures while retaining essential features. Sweep surfaces, commonly found in human-made objects, aid in this process by effectively capturing and representing object geometry, thereby facilitating abstraction. In this paper, we introduce \papername, a novel approach to shape abstraction through sweep surfaces. We propose an effective parameterization for sweep surfaces, utilizing superellipses for profile representation and B-spline curves for the axis. This compact representation, requiring as few as 14 float numbers, facilitates intuitive and interactive editing while preserving shape details effectively. Additionally, by introducing a differentiable neural sweeper and an encoder-decoder architecture, we demonstrate the ability to predict sweep surface representations without supervision. We show the superiority of our model through several quantitative and qualitative experiments throughout the paper.
+          </p>
+        
+        </div>
+      </div>
+    </div>
+  </section>
+  <br>
+
+  <section>
+    <div class="container">
+      <div class="row">
+        <div class="col-12 text-center">
+            <h2>Methodology</h2>
+            <hr style="margin-top:0px">
+            <img src="figures/pipeline_annotated.png" alt="SweepNet Pipeline" width="95%">
+            <p class="text-center">
+              <span style="font-weight: bold;">Pipeline overview.</span> The model processes voxel input to extract a skeletal prior and encodes the data with a voxel encoder. The sweep surface head predicts sweep surface parameters: 2D profiles, 3D sweeping axes, and profile scale coefficients, conditioned on the skeletal prior. Training involves generating key point clouds for each sweep surface through a differentiable sampler, which the neural sweeper uses to estimate sweep surface occupancy. This data is then assembled to reconstruct the input shape to quantify loss. At inference time, the sweep surface parameters are directly processed by a non-differentiable, imperative sweeper to produce the resembled shape.
+            </p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <br>
+
+  <section>
+    <div class="container">
+      <div class="row">
+        <div class="col-12 text-center">
+            <h2>Text to image to 3D model</h2>
+            <hr style="margin-top:0px">
+            <video width="80%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/t2i.mp4" type="video/mp4">
+            </video>
+
+          <p class="text-left">
+
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <br>
+  
+  <section>
+    <div class="container">
+      <div class="row">
+        <div class="col-12 text-center">
+            <h2>2D design to 3D model</h2>
+            <hr style="margin-top:0px">
+            <video width="80%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/drawings.mp4" type="video/mp4">
+            </video>
+
+          <p class="text-center">
+              SyncDreamer enables generating 3D models from 2D designs and hand drawings including skectches, Chinese ink paintings, oil paintings and so on.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <br>
+
+  
+  <section>
+    <div class="container">
+      <div class="row">
+        <div class="col-12 text-center">
+            <h2>Multiple instance generation</h2>
+            <hr style="margin-top:0px">
+            <video width="80%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/multiple.mp4" type="video/mp4">
+            </video>
+
+          <p class="text-center">
+            Given the same single-view image, SynDreame allows generating different instances using different random seeds.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <br>
+
+  
+  <section>
+    <div class="container">
+      <div class="row">
+        <div class="col-12 text-center">
+            <h2>More results</h2>
+            <hr style="margin-top:0px">
+            <video width="80%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/more_results.mp4" type="video/mp4">
+            </video>
+
+          <p class="text-center">
+              Test images are downloaded from the Internet and some of them are from <a href="https://wiki.biligame.com/ys/%E9%A6%96%E9%A1%B5" target="_blank">Genshin Impact Wiki</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <br>
+
+
+  <!-- citing -->
+  <div class="container">
+    <div class="row ">
+      <div class="col-12">
+          <h3>Citation</h3>
+          <hr style="margin-top:0px">
+              <pre style="background-color: #e9eeef;padding: 1.25em 1.5em">
+<code>@article{liu2023syncdreamer,
+  title={SyncDreamer: Generating Multiview-consistent Images from a Single-view Image},
+  author={Liu, Yuan and Lin, Cheng and Zeng, Zijiao and Long, Xiaoxiao and Liu, Lingjie and Komura, Taku and Wang, Wenping},
+  journal={arXiv preprint arXiv:2309.03453},
+  year={2023}
+}</code>
+              </pre>
+          <hr>
+      </div>
+    </div>
+  </div>
+
+  <footer class="text-center" style="margin-bottom:10px">
+      Thanks to <a href="https://lioryariv.github.io/" target="_blank">Lior Yariv</a> for the website template.
+  </footer>
+
+</body>
+</html>

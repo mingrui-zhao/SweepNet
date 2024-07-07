@@ -86,7 +86,7 @@
     <div class="container">
       <div class="row">
         <div class="col-12 text-center">
-            <h2>Methodology</h2>
+            <h2>Method</h2>
             <hr style="margin-top:0px">
             <img src="figures/pipeline_annotated.png" alt="SweepNet Pipeline" width="95%">
             <p class="text-center">
@@ -102,74 +102,278 @@
     <div class="container">
       <div class="row">
         <div class="col-12 text-center">
-            <h2>Text to image to 3D model</h2>
+            <h2>Primitive Parametrisation</h2>
             <hr style="margin-top:0px">
-            <video width="80%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
-                <source src="video/t2i.mp4" type="video/mp4">
-            </video>
+            <div class="video-container">
+              <div class="video-item">
+                <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                  <source src="video/linear_sweep_0.mp4" type="video/mp4">
+                </video>
+                <p class="text-center">Linear sweep surface</p>
+              </div>
+              <div class="video-item">
+                <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                  <source src="video/linear_sweep_1.mp4" type="video/mp4">
+                </video>
+                <p class="text-center">+Scaling function</p>
+              </div>
 
-          <p class="text-left">
-
-          </p>
-        </div>
-      </div>
-    </div>
-  </section>
-  <br>
-  
-  <section>
-    <div class="container">
-      <div class="row">
-        <div class="col-12 text-center">
-            <h2>2D design to 3D model</h2>
-            <hr style="margin-top:0px">
-            <video width="80%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
-                <source src="video/drawings.mp4" type="video/mp4">
-            </video>
+              <div class="video-item">
+                <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                  <source src="video/curvy_sweep_0.mp4" type="video/mp4">
+                </video>
+                <p class="text-center">Curvy sweep surface</p>
+              </div>
+              <div class="video-item">
+                <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                  <source src="video/curvy_sweep_1.mp4" type="video/mp4">
+                </video>
+                <p class="text-center">+Scaling function</p>
+              </div>
+            </div>
 
           <p class="text-center">
-              SyncDreamer enables generating 3D models from 2D designs and hand drawings including skectches, Chinese ink paintings, oil paintings and so on.
+              Sweep surface primitives are created by sweeping a 2D profile along a 3D axis, with a scaling function controls profile scale during the sweeping process.
           </p>
-        </div>
-      </div>
-    </div>
-  </section>
-  <br>
-
-  
-  <section>
-    <div class="container">
-      <div class="row">
-        <div class="col-12 text-center">
-            <h2>Multiple instance generation</h2>
-            <hr style="margin-top:0px">
-            <video width="80%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
-                <source src="video/multiple.mp4" type="video/mp4">
-            </video>
-
+          <img src="figures/sv_showcase_new.jpg" alt="SweepNet Pipeline" width="95%">
           <p class="text-center">
-            Given the same single-view image, SynDreame allows generating different instances using different random seeds.
-          </p>
+            We use superellipses for profile, B-spline curves for the sweeping axis and quadratic polynomial for the scaling function.
+        </p>
         </div>
       </div>
     </div>
   </section>
   <br>
 
+  <section>
+    <div class="container">
+      <div class="row">
+        <div class="col-12 text-center">
+          <h2>Shape Abstraction with Sweep Surfaces</h2>
+          <hr style="margin-top:0px">
+  
+          <div class="video-container">
+            <div class="video-item">
+              <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/now/now.mp4" type="video/mp4">
+              </video>
+              <p class="text-center"><a href="video/now/primitive_parameters.txt">Primitive Parameters</a></p>
+            </div>
+            <div class="video-item">
+              <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/ant/ant.mp4" type="video/mp4">
+              </video>
+              <p class="text-center"><a href="video/ant/primitive_parameters.txt">Primitive Parameters</a></p>
+            </div>
+            <div class="video-item">
+              <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/plane2/plane2.mp4" type="video/mp4">
+              </video>
+              <p class="text-center"><a href="video/plane2/primitive_parameters.txt">Primitive Parameters</a></p>
+            </div>
+          </div>
+  
+          <div class="video-container">
+            <div class="video-item">
+              <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/39/39.mp4" type="video/mp4">
+              </video>
+              <p class="text-center"><a href="video/39/primitive_parameters.txt">Primitive Parameters</a></p>
+            </div>
+            <div class="video-item">
+              <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/62/62.mp4" type="video/mp4">
+              </video>
+              <p class="text-center"><a href="video/62/primitive_parameters.txt">Primitive Parameters</a></p>
+            </div>
+            <div class="video-item">
+              <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/bird/bird.mp4" type="video/mp4">
+              </video>
+              <p class="text-center"><a href="video/bird/primitive_parameters.txt">Primitive Parameters</a></p>
+            </div>
+          </div>
+  
+          <div class="video-container">
+            <div class="video-item">
+              <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/octupus/octupus.mp4" type="video/mp4">
+              </video>
+              <p class="text-center"><a href="video/octupus/primitive_parameters.txt">Primitive Parameters</a></p>
+            </div>
+            <div class="video-item">
+              <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/at_sign/at_sign.mp4" type="video/mp4">
+              </video>
+              <p class="text-center"><a href="video/at_sign/primitive_parameters.txt">Primitive Parameters</a></p>
+            </div>
+            <div class="video-item">
+              <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/73/73.mp4" type="video/mp4">
+              </video>
+              <p class="text-center"><a href="video/73/primitive_parameters.txt">Primitive Parameters</a></p>
+            </div>
+          </div>
+  
+          <div class="video-container">
+            <div class="video-item">
+              <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/bluewhale/bluewhale.mp4" type="video/mp4">
+              </video>
+              <p class="text-center"><a href="video/bluewhale/primitive_parameters.txt">Primitive Parameters</a></p>
+            </div>
+            <div class="video-item">
+              <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/plant/Plant.mp4" type="video/mp4">
+              </video>
+              <p class="text-center"><a href="video/plant/primitive_parameters.txt">Primitive Parameters</a></p>
+            </div>
+            <div class="video-item">
+              <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/51/51.mp4" type="video/mp4">
+              </video>
+              <p class="text-center"><a href="video/51/primitive_parameters.txt">Primitive Parameters</a></p>
+            </div>
+          </div>
+  
+          <div class="video-container">
+            <div class="video-item">
+              <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/plane/plane.mp4" type="video/mp4">
+              </video>
+              <p class="text-center"><a href="video/plane/primitive_parameters.txt">Primitive Parameters</a></p>
+            </div>
+            <div class="video-item">
+              <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/dolphine/dolphine.mp4" type="video/mp4">
+              </video>
+              <p class="text-center"><a href="video/dolphine/primitive_parameters.txt">Primitive Parameters</a></p>
+            </div>
+            <div class="video-item">
+              <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/hand2/hand2.mp4" type="video/mp4">
+              </video>
+              <p class="text-center"><a href="video/hand2/primitive_parameters.txt">Primitive Parameters</a></p>
+            </div>
+          </div>
+  
+          <div class="video-container">
+            <div class="video-item">
+              <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/scissor/scissor.mp4" type="video/mp4">
+              </video>
+              <p class="text-center"><a href="video/scissor/primitive_parameters.txt">Primitive Parameters</a></p>
+            </div>
+            <div class="video-item">
+              <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/81/81.mp4" type="video/mp4">
+              </video>
+              <p class="text-center"><a href="video/81/primitive_parameters.txt">Primitive Parameters</a></p>
+            </div>
+            <div class="video-item">
+              <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/gecko/gecko.mp4" type="video/mp4">
+              </video>
+              <p class="text-center"><a href="video/gecko/primitive_parameters.txt">Primitive Parameters</a></p>
+            </div>
+          </div>
+  
+          <div class="video-container">
+            <div class="video-item">
+              <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/armadillo/armadillo.mp4" type="video/mp4">
+              </video>
+              <p class="text-center"><a href="video/armadillo/primitive_parameters.txt">Primitive Parameters</a></p>
+            </div>
+            <div class="video-item">
+              <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/53/53.mp4" type="video/mp4">
+              </video>
+              <p class="text-center"><a href="video/53/primitive_parameters.txt">Primitive Parameters</a></p>
+            </div>
+            <div class="video-item">
+              <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/giraffe/giraffe.mp4" type="video/mp4">
+              </video>
+              <p class="text-center"><a href="video/giraffe/primitive_parameters.txt">Primitive Parameters</a></p>
+            </div>
+          </div>
+  
+          <div class="video-container">
+            <div class="video-item">
+              <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/dog/dog.mp4" type="video/mp4">
+              </video>
+              <p class="text-center"><a href="video/dog/primitive_parameters.txt">Primitive Parameters</a></p>
+            </div>
+            <div class="video-item">
+              <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/hand/hand.mp4" type="video/mp4">
+              </video>
+              <p class="text-center"><a href="video/hand/primitive_parameters.txt">Primitive Parameters</a></p>
+            </div>
+            <div class="video-item">
+              <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                <source src="video/eight/eight.mp4" type="video/mp4">
+              </video>
+              <p class="text-center"><a href="video/eight/primitive_parameters.txt">Primitive Parameters</a></p>
+            </div>
+          </div>
+  
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <br>
   
   <section>
     <div class="container">
       <div class="row">
         <div class="col-12 text-center">
-            <h2>More results</h2>
+            <h2>Editablity</h2>
             <hr style="margin-top:0px">
-            <video width="80%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
-                <source src="video/more_results.mp4" type="video/mp4">
-            </video>
+            <div class="video-container">
+              <div class="video-item">
+                <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                  <source src="video/bulb_edit.mp4" type="video/mp4">
+                </video>
+                <p class="text-center">Edit axis length and scaling function</p>
+              </div>
+              <div class="video-item">
+                <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                  <source src="video/faucet_edit.mp4" type="video/mp4">
+                </video>
+                <p class="text-center">Spin sweeping axis</p>
+              </div>
+
+              <div class="video-item">
+                <video width="100%" playsinline="" autoplay="autoplay" loop="loop" preload="" muted="">
+                  <source src="video/s_edit.mp4" type="video/mp4">
+                </video>
+                <p class="text-center">Change proile curvature</p>
+              </div>
+
+            </div>
 
           <p class="text-center">
-              Test images are downloaded from the Internet and some of them are from <a href="https://wiki.biligame.com/ys/%E9%A6%96%E9%A1%B5" target="_blank">Genshin Impact Wiki</a>.
+              Sweep surface primitives can be edited post-creation by altering associated primitive parameters.
           </p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <br>
+
+  
+  <section>
+    <div class="container">
+      <div class="row">
+        <div class="col-12 text-center">
+            <h2>Additional results</h2>
+            <hr style="margin-top:0px">
+            <img src="figures/result_alphabet.png" alt="SweepNet Pipeline" width="95%">
+            <img src="figures/result_number.png" alt="SweepNet Pipeline" width="95%">
         </div>
       </div>
     </div>
@@ -184,12 +388,8 @@
           <h3>Citation</h3>
           <hr style="margin-top:0px">
               <pre style="background-color: #e9eeef;padding: 1.25em 1.5em">
-<code>@article{liu2023syncdreamer,
-  title={SyncDreamer: Generating Multiview-consistent Images from a Single-view Image},
-  author={Liu, Yuan and Lin, Cheng and Zeng, Zijiao and Long, Xiaoxiao and Liu, Lingjie and Komura, Taku and Wang, Wenping},
-  journal={arXiv preprint arXiv:2309.03453},
-  year={2023}
-}</code>
+<code>to be added
+</code>
               </pre>
           <hr>
       </div>

@@ -35,6 +35,23 @@
   --font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
+.video-container {
+  display: flex;
+  justify-content: space-between;
+}
+.video-item {
+  width: 30%;
+  margin: 10px;
+  text-align: center;
+}
+.video-item video {
+  width: 100%;
+  height: auto;
+}
+.text-center {
+  text-align: center;
+}
+
 .pdf-container {
   width: 95%;
   height: 1000px; /* Adjust the height as needed */

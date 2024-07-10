@@ -46,27 +46,28 @@ Download the preprocessed dataset GC-objects and quadrupeds at [huggingface](htt
 
 Unzip the files and put them at **./data**
 
-The GC-objects models are sourced from [OreX](https://arxiv.org/abs/2211.12886), [GCD](https://www.cs.sfu.ca/~haoz/pubs/zhou_siga15_gcd.pdf) and internet.
-The quadruped dataset is adopted from [this paper](https://arxiv.org/abs/1612.00404).
+The GC-objects models are sourced from [OreX](https://arxiv.org/abs/2211.12886), [GCD](https://www.cs.sfu.ca/~haoz/pubs/zhou_siga15_gcd.pdf), and various internet sources. The quadruped dataset is adopted from [this paper](https://arxiv.org/abs/1612.00404).
 
-Please cite them if you used our processed dataset.
+Please cite these sources if you use our processed dataset.
 
 ## Neural Sweeper
-Download the pretrained checkpoint of neural sweeper at [here](https://1sfu-my.sharepoint.com/:u:/g/personal/mza143_sfu_ca/EeXpzdgOOjtBoEIJZ8BkHqABTn0v3ZBDEIRGqjyB4oay7w?e=m2Qj32) and put the checkpoint at **./neural_sweeper/ckpt** directory.
+Download the pretrained checkpoint of the neural sweeper [here](https://1sfu-my.sharepoint.com/:u:/g/personal/mza143_sfu_ca/EeXpzdgOOjtBoEIJZ8BkHqABTn0v3ZBDEIRGqjyB4oay7w?e=m2Qj32) and place the checkpoint in the **./neural_sweeper/ckpt** directory.
 
-The training data is available at [huggingface](https://huggingface.co/datasets/zmrr/SweepNetDataset) and [Onedrive](https://1sfu-my.sharepoint.com/:f:/g/personal/mza143_sfu_ca/ElK2VX9kEeVNrCbJo4K-NKgBoLeVuOM8wHVKhERq3VwmDw?e=7bUexl). Please refer to our [paper](https://arxiv.org/abs/2407.06305) for data preparation details.
+The training data is available on [huggingface](https://huggingface.co/datasets/zmrr/SweepNetDataset) and [Onedrive](https://1sfu-my.sharepoint.com/:f:/g/personal/mza143_sfu_ca/ElK2VX9kEeVNrCbJo4K-NKgBoLeVuOM8wHVKhERq3VwmDw?e=7bUexl). Please refer to our [paper](https://arxiv.org/abs/2407.06305) for data preparation details.
 
 
 ## Train the Model
-Execute the command below to train the SweepNet on a single shape with voxel input. The outcomes of this process are stored in the **./results** directory.
+### Voxel input
+Execute the following command to train the SweepNet on a single shape with voxel input. The outcomes will be stored in the **./results** directory.
 
 ```python train.py --config_path ./configs/default.json```
 
-Execute the command below to train the SweepNet on a single shape with point cloud input. The outcomes of this process are stored in the **./results** directory.
+### Pointcloud input
+Execute the following command to train the SweepNet on a single shape with point cloud input. The outcomes will be stored in the **./results** directory.
 
 ```python train.py --config_path ./configs/pcd.json```
 
-Execute the command below to train the SweepNet with different number of available primitives over the GC-object dataset. The outcomes of this process are stored in the **./results** directory.
+Execute the following command to train the SweepNet with different numbers of available primitives over the GC-object dataset. The outcomes will be stored in the **./results** directory.
 
 ```bash script/ablate_num_prim.sh```
 
@@ -77,10 +78,11 @@ Execute the command below to reproduce sweep surfaces from their parameters.
 
 ```python misc/produce_model_from_parameters.py```
 
-Try some other primitive parameters we provided in the project page for fun! 😄
+Try some other primitive parameters we provided on the project page for fun! 😄
 
 ## Limitations
-SweepNet prefers models exhitbiting sweep elements and may concur local optimums at different initialisations. If the abstraction result is unsatisfactory, try provide multiple runs for a better fit.
+SweepNet prefers models exhibiting sweep elements and may converge to local optima with different initializations. If the abstraction result is unsatisfactory, try providing multiple runs for a better fit:
+
 ```bash script/train_multiple_runs.sh```
 
 ## Acknowledgements

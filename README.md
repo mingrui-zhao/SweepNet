@@ -3,7 +3,7 @@
   <h1 align="center"><a href="https://mingrui-zhao.github.io/SweepNet/" target="_blank">SweepNet: Unsupervised Learning Shape Abstraction via Neural Sweepers</a></h1>
 
   <p align="center">
-    <a href="https://sairajk.github.io/" target="_blank"><strong>Mingrui Zhao</strong></a>
+    <a href="https://mingrui-zhao.github.io/" target="_blank"><strong>Mingrui Zhao</strong></a>
     ·
     <a href="https://yizhiwang96.github.io/" target="_blank"><strong>Yizhi Wang</strong></a>
     ·

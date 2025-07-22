@@ -46,6 +46,11 @@ Download the preprocessed dataset GC-objects and quadrupeds at [huggingface](htt
 
 Unzip the files and put them at **./data**
 
+Run the following command to enable branch-wise initialisation.
+```
+python misc/get_skeletons.py
+```
+
 The GC-objects models are sourced from [OreX](https://arxiv.org/abs/2211.12886), [GCD](https://www.cs.sfu.ca/~haoz/pubs/zhou_siga15_gcd.pdf), and various internet sources. The quadruped dataset is adopted from [this paper](https://arxiv.org/abs/1612.00404).
 
 Please cite these sources if you use our processed dataset.
@@ -84,6 +89,8 @@ Try some other primitive parameters we provided on the project page for fun! ðŸ˜
 SweepNet prefers models exhibiting sweep elements and may converge to local optima with different initializations. If the abstraction result is unsatisfactory, try providing multiple runs for a better fit:
 
 ```bash script/train_multiple_runs.sh```
+
+Updates: Implemented branch-wise initialisation for faster inference and stablised convergence.
 
 ## Acknowledgements
 Our codebased is developed based on [ExtrudeNet](https://github.com/kimren227/ExtrudeNet), [POCO](https://github.com/valeoai/POCO) and [CAPRI-NET](https://github.com/FENGGENYU/CAPRI-Net). The data pre-processing code is available at [D2CSG](https://github.com/FENGGENYU/D2CSG/tree/main/data_processing).

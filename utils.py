@@ -157,12 +157,62 @@ def get_distinct_color(index):
 
 def polyline_from_points(points):
     """Generate polygonal lines from points for Pyvista package."""
-    poly = pv.PolyData()
-    poly.points = points
-    # The cell start with the line segment length, followed by point indices.
-    the_cell = np.arange(0, len(points), dtype=np.int_)
-    the_cell = np.insert(the_cell, 0, len(points))
-    poly.lines = the_cell
+    # Ensure points is a numpy array and has the right shape
+    points = np.array(points, dtype=np.float64)
+    if points.ndim == 1:
+        points = points.reshape(-1, 3)
+    
+    # Handle empty or invalid points
+    if len(points) == 0:
+        return pv.PolyData()
+    
+    # Ensure points have the right shape (N, 3)
+    if points.shape[1] != 3:
+        raise ValueError(f"Points must have shape (N, 3), got {points.shape}")
+    
+    # Check for NaN or infinity values
+    if np.any(np.isnan(points)) or np.any(np.isinf(points)):
+        print(f"Warning: Points contain NaN or infinity values, filtering them out")
+        valid_mask = np.isfinite(points).all(axis=1)
+        points = points[valid_mask]
+        
+        if len(points) == 0:
+            print("Warning: No valid points after filtering NaN/infinity values")
+            return pv.PolyData()
+    
+    # Create PolyData using the proper method
+    try:
+        # Use pyvista's spline creation which handles all internal attributes properly
+        if len(points) > 1:
+            poly = pv.Spline(points)
+        else:
+            # Single point case
+            poly = pv.PolyData(points)
+    except Exception as e:
+        print(f"Error creating spline: {e}")
+        # Fallback: try the older method with proper initialization
+        try:
+            poly = pv.PolyData()
+            poly.points = points
+            if len(points) > 1:
+                the_cell = np.arange(0, len(points), dtype=np.int_)
+                the_cell = np.insert(the_cell, 0, len(points))
+                poly.lines = the_cell
+        except Exception as e2:
+            print(f"Fallback method also failed: {e2}")
+            # Final fallback: create with minimal lines structure
+            try:
+                if len(points) > 1:
+                    lines = []
+                    for i in range(len(points) - 1):
+                        lines.extend([2, i, i + 1])
+                    poly = pv.PolyData(points, lines=lines)
+                else:
+                    poly = pv.PolyData(points)
+            except Exception as e3:
+                print(f"Final fallback failed: {e3}")
+                raise e
+    
     return poly
 
 
@@ -177,21 +227,47 @@ def render_general_cyl(
     # Define the parameter values
     t = torch.linspace(knots[k], knots[-k - 1], 100)  # type: ignore
     basis_mat = spline_basis_matrix(knots, t, n=n, k=k)
+    
+    # Convert tensors to numpy arrays for consistent operations
+    basis_mat = basis_mat.detach().cpu().numpy()
+    control_points = np.array(control_points)
+    
     all_gc = pv.PolyData()
     for i in range(control_points.shape[0]):
         curve_points = np.matmul(basis_mat, control_points[i])[:-1]
-        polyline = polyline_from_points(np.array(curve_points))
+        
+        # Skip if we don't have enough points
+        if len(curve_points) < 2:
+            print(f"Warning: Skipping primitive {i} - insufficient points ({len(curve_points)})")
+            continue
+            
+        polyline = polyline_from_points(curve_points)
+        
+        # Skip if polyline creation failed
+        if polyline.n_points == 0:
+            print(f"Warning: Skipping primitive {i} - failed to create polyline")
+            continue
+            
         polyline["scalars"] = np.arange(polyline.n_points)
-        tube = polyline.tube(radius=0.005)
+        
+        try:
+            tube = polyline.tube(radius=0.005)
+        except Exception as e:
+            print(f"Warning: Failed to create tube for primitive {i}: {e}")
+            continue
+            
         if color_option is None:  # Distinct color
             color = get_distinct_color(i * 2)
         else:  # Coral color
             color = np.array([240.0, 128.0, 128.0])
         tube.point_data["RGB"] = np.full((tube.n_points, 3), np.uint8(color))  # type: ignore
         if tube_save:
-            tube.save(
-                os.path.join(os.path.dirname(outpath), f"spline_{i}.ply"), texture="RGB"
-            )
+            try:
+                tube.save(
+                    os.path.join(os.path.dirname(outpath), f"spline_{i}.ply"), texture="RGB"
+                )
+            except Exception as e:
+                print(f"Warning: Failed to save tube for primitive {i}: {e}")
         all_gc += tube  # type: ignore
     print(f"Saving the rendered general cylinder representations to {outpath}")
     all_gc.save(outpath, texture="RGB")
@@ -239,18 +315,23 @@ def create_gt_swept_volume(
     primitive_parameters, num_control_points=3, file_prefix=None, edit_suffix=None
 ):
     """Generate ground truth sweep surfaces from primitive parameters."""
-    primitive_parameters = torch.from_numpy(primitive_parameters).unsqueeze(0)
+    primitive_parameters = torch.from_numpy(primitive_parameters)
+    import pdb; pdb.set_trace()
     num_primitives = primitive_parameters.shape[1]
     control_points = primitive_parameters[:, :, : 3 * num_control_points]
+    
+    # Convert control points to the format expected by render_general_cyl
+    control_points_np = control_points.detach().cpu().numpy()
+    
     if edit_suffix is not None:
         render_general_cyl(
-            control_points,
+            control_points_np,
             os.path.join(file_prefix, f"spline_axis_{edit_suffix}.ply"),
             n=num_control_points,
         )
     else:
         render_general_cyl(
-            control_points,
+            control_points_np,
             os.path.join(file_prefix, f"spline_axis.ply"),
             n=num_control_points,
         )
@@ -270,13 +351,13 @@ def create_gt_swept_volume(
         polygon = shapely.Polygon(contour)
         if edit_suffix is not None:
             render_general_cyl(
-                control_points[:, i, :][:, None, :],
+                control_points_np[:, i, :][:, None, :],
                 os.path.join(file_prefix, f"spline_axis_{i}_{edit_suffix}.ply"),
                 n=num_control_points,
             )
         else:
             render_general_cyl(
-                control_points[:, i, :][:, None, :],
+                control_points_np[:, i, :][:, None, :],
                 os.path.join(file_prefix, f"spline_axis_{i}.ply"),
                 n=num_control_points,
             )
@@ -561,10 +642,10 @@ def sample_scaling_superellipse_points(
         )  # slightly less than 1 to ensure it's within the domain
         # Axis points
 
-        bspline_basis = spline_basis_matrix(knots, t_values, n=n, k=k)
+        bspline_basis = spline_basis_matrix(knots, t_values, n=n, k=k).to(control_points.device)
         bspline_points = torch.matmul(bspline_basis, control_points)
     else:
-        bspline_coe = bspline_cache.get_bspline_coefficient(n, k, spline_points + 1)
+        bspline_coe = bspline_cache.get_bspline_coefficient(n, k, spline_points + 1).to(control_points.device)
         bspline_points = torch.matmul(bspline_coe, control_points)
     # Profile parameters
     a = sweep_param[:, n * 3 : n * 3 + 1]
@@ -730,3 +811,98 @@ def get_parallel_transport_frame(
     # Concatenate the last row to each transformation matrix
     transform = torch.cat((transform, last_rows), dim=2)
     return transform
+
+
+def save_model_modules(model, save_path, exclude_neural_sweeper=True):
+    """
+    Save only the trainable modules of the model, excluding the neural sweeper for efficiency.
+    
+    Args:
+        model: The SweepNet model
+        save_path: Path to save the checkpoint
+        exclude_neural_sweeper: Whether to exclude neural sweeper from saving
+    """
+    checkpoint = {
+        "encoder_state_dict": model.encoder.state_dict(),
+        "decoder_state_dict": model.decoder.state_dict(),
+        "selection_head_state_dict": model.selection_head.state_dict(),
+        "swept_volume_head_state_dict": model.swept_volume_head.state_dict(),
+    }
+    
+    # Save model config if available
+    if hasattr(model, 'config'):
+        checkpoint["config"] = model.config
+    
+    torch.save(checkpoint, save_path)
+    print(f"Saved trainable modules to {save_path}")
+
+
+def load_model_modules(model, load_path, device=None):
+    """
+    Load only the trainable modules of the model, excluding the neural sweeper.
+    
+    Args:
+        model: The SweepNet model to load into
+        load_path: Path to the checkpoint
+        device: Device to load the model on
+    
+    Returns:
+        bool: True if loading was successful
+    """
+    try:
+        checkpoint = torch.load(load_path, map_location=device)
+        
+        if "encoder_state_dict" in checkpoint:
+            # Load module-only checkpoint
+            model.encoder.load_state_dict(checkpoint["encoder_state_dict"])
+            model.decoder.load_state_dict(checkpoint["decoder_state_dict"])
+            model.selection_head.load_state_dict(checkpoint["selection_head_state_dict"])
+            model.swept_volume_head.load_state_dict(checkpoint["swept_volume_head_state_dict"])
+            print(f"Successfully loaded module-only checkpoint from {load_path}")
+            return True
+        else:
+            # Try to load as full model checkpoint (backward compatibility)
+            model.load_state_dict(checkpoint["state_dict"])
+            print(f"Successfully loaded full model checkpoint from {load_path}")
+            return True
+            
+    except Exception as e:
+        print(f"Error loading checkpoint from {load_path}: {e}")
+        return False
+
+
+def get_model_size_info(model):
+    """
+    Get information about model size and parameter counts.
+    
+    Args:
+        model: The model to analyze
+    
+    Returns:
+        dict: Information about model size
+    """
+    total_params = 0
+    trainable_params = 0
+    module_info = {}
+    
+    for name, module in model.named_modules():
+        if hasattr(module, 'parameters'):
+            module_params = sum(p.numel() for p in module.parameters())
+            module_trainable = sum(p.numel() for p in module.parameters() if p.requires_grad)
+            
+            if module_params > 0:
+                module_info[name] = {
+                    'total_params': module_params,
+                    'trainable_params': module_trainable,
+                    'size_mb': module_params * 4 / (1024 * 1024)  # Assuming float32
+                }
+                total_params += module_params
+                trainable_params += module_trainable
+    
+    return {
+        'total_params': total_params,
+        'trainable_params': trainable_params,
+        'total_size_mb': total_params * 4 / (1024 * 1024),
+        'trainable_size_mb': trainable_params * 4 / (1024 * 1024),
+        'modules': module_info
+    }

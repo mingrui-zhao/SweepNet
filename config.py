@@ -69,3 +69,8 @@ class Config:
         self.epoch = config_dict["epoch"]
         self.eval_interval = config_dict["eval_interval"]
         self.drop_interval = config_dict["drop_interval"]
+        
+        # Initialization options
+        self.use_numerical_init = config_dict.get("use_numerical_init", True)  # Default to True for better performance
+        self.numerical_init_epochs = config_dict.get("numerical_init_epochs", 50)  # Number of epochs for numerical initialization
+        self.use_branch_wise_init = config_dict.get("use_branch_wise_init", True)  # Enable branch-wise initialization

@@ -7,6 +7,7 @@ import numpy as np
 import config
 import h5py
 import torch
+import branch_utils
 
 
 class SweepData(Dataset):
@@ -28,6 +29,7 @@ class SweepData(Dataset):
         self.balance = balance
         self.num_surface_points = config.num_surface_points
         self.num_testing_points = config.num_testing_points
+        self.config = config
 
         assert (
             self.partition in self.PARTITIONS
@@ -61,7 +63,13 @@ class SweepData(Dataset):
         testing_points = np.concatenate([points, values], axis=-1)
         self.testing_points = torch.from_numpy(testing_points).float()
         self.voxel = torch.from_numpy(voxels).float().squeeze(-1)
+        
+        # Load skeletal points and process branch information
         all_skeletal_points = []
+        all_branch_assignments = []
+        all_primitive_control_points = []
+        all_branches = []
+        
         for i in range(len(self.data_urls)):
             skeletal_points = np.asarray(
                 o3d.io.read_point_cloud(
@@ -69,7 +77,28 @@ class SweepData(Dataset):
                 ).points
             )
             all_skeletal_points.append(skeletal_points)
+            
+            # Process branch information
+            skeleton_txt_path = os.path.join(self.data_urls[i], "voxel_64_mc.txt")
+            if os.path.exists(skeleton_txt_path):
+                primitive_control_points, branch_assignments, branches = branch_utils.process_skeleton_for_branch_initialization(
+                    skeleton_txt_path, 
+                    config.num_primitives, 
+                    int(config.bspline_control_points)
+                )
+                all_branch_assignments.append(branch_assignments)
+                all_primitive_control_points.append(primitive_control_points)
+                all_branches.append(branches)
+            else:
+                # Fallback: create default assignments
+                all_branch_assignments.append(list(range(config.num_primitives)))
+                all_primitive_control_points.append([np.random.randn(int(config.bspline_control_points), 3) * 0.1 for _ in range(config.num_primitives)])
+                all_branches.append([])
+        
         self.skeletal_points = torch.from_numpy(np.stack(all_skeletal_points)).float()
+        self.branch_assignments = all_branch_assignments
+        self.primitive_control_points = all_primitive_control_points
+        self.branches = all_branches
         self.test_names = list(test_names[name_index])
 
     def __getitem__(self, item):
@@ -77,6 +106,9 @@ class SweepData(Dataset):
         voxel = self.voxel[item]
         testing_points = self.testing_points[item]
         skeletal_points = self.skeletal_points[item]
+        branch_assignments = self.branch_assignments[item]
+        primitive_control_points = self.primitive_control_points[item]
+        branches = self.branches[item]
 
         # downsample testing point clouds
         if self.balance:
@@ -103,7 +135,7 @@ class SweepData(Dataset):
         )
         skeletal_points = skeletal_points[skeletal_indices]
 
-        return (voxel, testing_points, skeletal_points, self.test_names)
+        return (voxel, testing_points, skeletal_points, self.test_names, branch_assignments, primitive_control_points, branches)
 
     def __len__(self):
         if self.partition == "train":
@@ -133,6 +165,7 @@ class SweepDataPCD(Dataset):
         self.balance = balance
         self.num_surface_points = config.num_surface_points
         self.num_testing_points = config.num_testing_points
+        self.config = config
 
         assert (
             self.partition in self.PARTITIONS
@@ -172,7 +205,13 @@ class SweepDataPCD(Dataset):
 
         testing_points = np.concatenate([points, values], axis=-1)
         self.testing_points = torch.from_numpy(testing_points).float()
+        
+        # Load skeletal points and process branch information
         all_skeletal_points = []
+        all_branch_assignments = []
+        all_primitive_control_points = []
+        all_branches = []
+        
         for i in range(len(self.data_urls)):
             # import pdb; pdb.set_trace()
             skeletal_points = np.asarray(
@@ -181,8 +220,28 @@ class SweepDataPCD(Dataset):
                 ).points
             )
             all_skeletal_points.append(skeletal_points)
+            
+            # Process branch information
+            skeleton_txt_path = os.path.join(self.data_urls[i], "voxel_64_mc.txt")
+            if os.path.exists(skeleton_txt_path):
+                primitive_control_points, branch_assignments, branches = branch_utils.process_skeleton_for_branch_initialization(
+                    skeleton_txt_path, 
+                    config.num_primitives, 
+                    int(config.bspline_control_points)
+                )
+                all_branch_assignments.append(branch_assignments)
+                all_primitive_control_points.append(primitive_control_points)
+                all_branches.append(branches)
+            else:
+                # Fallback: create default assignments
+                all_branch_assignments.append(list(range(config.num_primitives)))
+                all_primitive_control_points.append([np.random.randn(int(config.bspline_control_points), 3) * 0.1 for _ in range(config.num_primitives)])
+                all_branches.append([])
 
         self.skeletal_points = torch.from_numpy(np.stack(all_skeletal_points)).float()
+        self.branch_assignments = all_branch_assignments
+        self.primitive_control_points = all_primitive_control_points
+        self.branches = all_branches
         self.test_names = list(test_names[name_index])
 
     def __getitem__(self, item):
@@ -191,6 +250,9 @@ class SweepDataPCD(Dataset):
         pointcloud = self.pointcloud[0].float()
         testing_points = self.testing_points[item]
         skeletal_points = self.skeletal_points[item]
+        branch_assignments = self.branch_assignments[item]
+        primitive_control_points = self.primitive_control_points[item]
+        branches = self.branches[item]
 
         # downsample testing point clouds
         if self.balance:
@@ -227,6 +289,9 @@ class SweepDataPCD(Dataset):
             testing_points,
             skeletal_points,
             self.test_names,
+            branch_assignments,
+            primitive_control_points,
+            branches,
         )
 
     def __len__(self):

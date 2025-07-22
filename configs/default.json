@@ -1,6 +1,9 @@
 {
     "dataset": "SweepData",
     "shape_id": "ant",
+    "use_numerical_init": true,
+    "numerical_init_epochs": 500,
+    "use_branch_wise_init": true,
     "num_testing_points": 10000,
     "num_surface_points": 10000,
     "num_sample_points": 10000,

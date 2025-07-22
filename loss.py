@@ -4,6 +4,7 @@
 import torch
 import torch.nn as nn
 import utils
+import numpy as np
 
 
 def chamfer_distance_3d(a, b):
@@ -172,6 +173,232 @@ class InitLoss(nn.Module):
             "loss_weight": loss_weight,
             "loss_total": loss_total,
         }
+
+
+class BranchWiseInitLoss(nn.Module):
+    """Loss function for branch-wise initialization, initialize each primitive near its assigned branch."""
+
+    def __init__(self, config):
+        super(BranchWiseInitLoss, self).__init__()
+        self.scale = config.scale_bspline_loss
+        self.config = config
+        self.bspline_cache = utils.BsplineCache()
+        
+        # Pre-compute B-spline basis
+        self.n = int(config.bspline_control_points)
+        self.k = int(config.bspline_order)
+        self.knots = torch.concatenate(
+            (
+                torch.zeros(self.k),
+                torch.linspace(0, 1, self.n - self.k + 1),
+                torch.ones(self.k),
+            )
+        )
+        self.t_values = torch.linspace(0.0, 0.9999, 16)
+        
+    def safe_to_numpy(self, data):
+        """
+        Safely convert data to numpy array, handling various input types.
+        
+        Args:
+            data: Input data (tensor, numpy array, list, tuple, etc.)
+            
+        Returns:
+            numpy array
+        """
+        # Handle PyTorch tensors first
+        if torch.is_tensor(data):
+            return data.detach().cpu().numpy()
+        
+        # Handle tensor-like objects with cpu() method
+        if hasattr(data, 'cpu') and callable(getattr(data, 'cpu')):
+            try:
+                return data.cpu().numpy()
+            except:
+                pass
+        
+        # Handle objects with numpy() method
+        if hasattr(data, 'numpy') and callable(getattr(data, 'numpy')):
+            try:
+                return data.numpy()
+            except:
+                pass
+        
+        # Handle numpy arrays (pass through)
+        if isinstance(data, np.ndarray):
+            return data
+        
+        # Handle lists/tuples/other iterables
+        try:
+            return np.array(data)
+        except:
+            # Last resort: try to convert to float and then to numpy
+            try:
+                if hasattr(data, '__iter__') and not isinstance(data, (str, bytes)):
+                    return np.array([float(x) for x in data])
+                else:
+                    return np.array([float(data)])
+            except:
+                # If all else fails, return as single element array
+                return np.array([0.0, 0.0, 0.0])  # Default 3D point
+
+    def forward(self, skeletal_points, primitive_parameters, union_layer_connections, 
+                branch_assignments, primitive_control_points, branches):
+        """
+        Forward pass for branch-wise initialization loss.
+        
+        Args:
+            skeletal_points: Full skeleton point cloud (not used in branch-wise loss)
+            primitive_parameters: Current primitive parameters (B, N, param_dim)
+            union_layer_connections: Union layer weights (B, N)
+            branch_assignments: List of branch indices for each primitive
+            primitive_control_points: List of initial control points for each primitive
+            branches: List of branch point sequences
+        """
+        B, N, _ = primitive_parameters.shape
+        device = primitive_parameters.device
+        
+        # Initialize total loss
+        total_bspline_loss = 0.0
+        
+        # Get B-spline basis matrix
+        bspline_basis = self.bspline_cache.get_bspline_coefficient(
+            self.n, self.k, len(self.t_values)
+        ).to(device)
+        
+        # Count primitives per branch for adaptive weighting
+        branch_counts = {}
+        for assignment in branch_assignments:
+            branch_counts[assignment] = branch_counts.get(assignment, 0) + 1
+        
+        # Calculate branch lengths for weighting
+        branch_lengths = {}
+        for i, branch in enumerate(branches):
+            if len(branch) > 1:
+                # Use safe conversion to numpy arrays
+                branch_points = []
+                for point in branch:
+                    branch_points.append(self.safe_to_numpy(point))
+                
+                # Calculate length using numpy arrays
+                length = sum(np.linalg.norm(branch_points[j+1] - branch_points[j]) 
+                           for j in range(len(branch_points) - 1))
+                branch_lengths[i] = length
+            else:
+                branch_lengths[i] = 0.1  # Small default for single point branches
+        
+        # Process each primitive with its assigned branch
+        for i in range(N):
+            # Get current primitive parameters
+            prim_params = primitive_parameters[:, i:i+1, :]
+            control_points = prim_params[:, :, :self.n * 3].reshape(-1, self.n, 3)
+            
+            # Get target branch points
+            branch_idx = branch_assignments[i]
+            
+            # Adaptive weight based on branch assignment and length
+            branch_weight = 1.0
+            if branch_idx in branch_counts and branch_counts[branch_idx] > 1:
+                # Reduce weight for over-assigned branches
+                branch_weight = 1.0 / np.sqrt(branch_counts[branch_idx])
+            
+            if branch_idx in branch_lengths:
+                # Weight by branch length (longer branches get more weight)
+                total_branch_length = sum(branch_lengths.values())
+                if total_branch_length > 0:
+                    length_weight = branch_lengths[branch_idx] / total_branch_length
+                    branch_weight *= (1.0 + length_weight)
+            
+            if branch_idx < len(branches) and len(branches[branch_idx]) > 0:
+                # Convert branch points to tensor, handling both numpy arrays and existing tensors
+                branch_points_list = []
+                for point in branches[branch_idx]:
+                    if torch.is_tensor(point):
+                        # Already a tensor, move to correct device
+                        branch_points_list.append(point.to(device).float())
+                    else:
+                        # Convert from numpy/tuple to tensor using safe conversion
+                        point_np = self.safe_to_numpy(point)
+                        branch_points_list.append(torch.tensor(point_np, dtype=torch.float32, device=device))
+                
+                # Stack into a single tensor
+                branch_points = torch.stack(branch_points_list).unsqueeze(0)  # Add batch dimension
+                
+                # Compute B-spline curve from control points
+                bspline_curve = torch.matmul(bspline_basis, control_points).reshape(B, -1, 3)
+                
+                # For over-assigned branches, encourage diversity by adding a small offset
+                if branch_idx in branch_counts and branch_counts[branch_idx] > 1:
+                    # Add a small diversity factor to avoid identical primitives
+                    diversity_offset = 0.01 * (i % branch_counts[branch_idx])  # Different offset for each primitive
+                    diversity_noise = torch.randn_like(bspline_curve) * diversity_offset
+                    bspline_curve = bspline_curve + diversity_noise
+                
+                # Compute chamfer distance between B-spline curve and branch points
+                primitive_loss = chamfer_distance_3d(bspline_curve, branch_points)
+                
+                # Apply adaptive weighting
+                primitive_loss *= branch_weight
+                total_bspline_loss += primitive_loss
+            else:
+                # No valid branch for this primitive, use light regularization
+                control_points_center = control_points.mean(dim=1, keepdim=True)
+                regularization_loss = torch.norm(control_points - control_points_center, dim=-1).mean()
+                total_bspline_loss += regularization_loss * 0.1  # Light penalty
+        
+        # Union layer regularization with balance penalty
+        union_loss = 0.0
+        if union_layer_connections is not None:
+            # Standard union layer loss
+            union_loss = torch.norm(union_layer_connections, dim=-1).mean()
+            
+            # Balance penalty: penalize uneven distribution of union weights
+            if union_layer_connections.numel() > 0:
+                union_weights = union_layer_connections.abs()
+                weight_variance = torch.var(union_weights, dim=-1).mean()
+                balance_penalty = weight_variance * 0.1  # Encourage balanced weights
+                union_loss += balance_penalty
+        
+        # Return loss dictionary
+        return {
+            'loss': total_bspline_loss / N + union_loss * 0.1,
+            'bspline_loss': total_bspline_loss / N,
+            'union_loss': union_loss
+        }
+        
+    def initialize_primitive_parameters(self, primitive_control_points, num_primitives, device):
+        """
+        Initialize primitive parameters with branch-specific control points.
+        
+        Args:
+            primitive_control_points: List of control points for each primitive
+            num_primitives: Number of primitives
+            device: Device to put tensors on
+            
+        Returns:
+            Initialized primitive parameters tensor
+        """
+        B = 1  # Batch size is 1 for single shape training
+        param_dim = self.n * 3 + 5  # Control points + 5 additional parameters
+        
+        # Initialize parameters tensor
+        init_params = torch.zeros(B, num_primitives, param_dim).to(device)
+        
+        # Set control points
+        for i in range(num_primitives):
+            if i < len(primitive_control_points):
+                control_points = torch.as_tensor(primitive_control_points[i], dtype=torch.float32, device=device)
+                init_params[0, i, :self.n * 3] = control_points.flatten()
+            else:
+                # Random initialization for extra primitives
+                init_params[0, i, :self.n * 3] = torch.randn(self.n * 3, device=device) * 0.1
+        
+        # Set default values for additional parameters
+        init_params[:, :, self.n * 3:self.n * 3 + 2] = 0.05  # a, b parameters
+        init_params[:, :, self.n * 3 + 2] = 2.0  # degree parameter
+        init_params[:, :, self.n * 3 + 3:] = 0.0  # scale terms
+        
+        return init_params
 
 class Loss(nn.Module):
     """Loss function for NeuralSweeper."""

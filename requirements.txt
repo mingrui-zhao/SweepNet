@@ -20,4 +20,4 @@ torchvision==0.17.0
 tqdm==4.66.1
 trimesh==4.0.10
 mapbox_earcut
-manifold_3d
+manifold3d
